@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/welcome/welcome.dart';
+import 'screens/products_overview/products_overview.dart';
 
 class ShopApp extends StatelessWidget {
   const ShopApp({Key? key}) : super(key: key);
@@ -8,7 +9,7 @@ class ShopApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Shop App',
-      home: const WelcomeScreen(),
+      home: ProductOverviewScreen(),
       theme: ThemeData(fontFamily: 'Lato'),
     );
   }
