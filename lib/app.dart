@@ -5,6 +5,8 @@ import 'screens/products_overview.dart';
 import 'screens/product_detail.dart';
 import 'screens/cart.dart';
 import 'screens/orders.dart';
+import 'screens/user_products.dart';
+import 'screens/edit_product.dart';
 
 import 'providers/products.dart';
 import 'providers/cart.dart';
@@ -28,6 +30,8 @@ class ShopApp extends StatelessWidget {
           ProductDetailScreen.routeName: (ctx) => const ProductDetailScreen(),
           CartScreen.routeName: (ctx) => const CartScreen(),
           OrdersScreen.routeName: (ctx) => const OrdersScreen(),
+          UserProductsScreen.routeName: (ctx) => const UserProductsScreen(),
+          EditProductScreen.routeName: (ctx) => const EditProductScreen(),
         },
         theme: ThemeData(
             fontFamily: 'Lato',
