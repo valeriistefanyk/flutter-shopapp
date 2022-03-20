@@ -6,12 +6,15 @@ import 'package:shop_app/providers/product.dart';
 import '../providers/products.dart';
 
 class _EditedProduct {
+  String? id;
   String title;
   double price;
   String imageUrl;
   String description;
+  bool isFavorite = false;
 
   _EditedProduct({
+    this.id,
     required this.title,
     required this.price,
     required this.imageUrl,
@@ -39,6 +42,41 @@ class _EditProductScreenState extends State<EditProductScreen> {
     imageUrl: '',
     description: '',
   );
+  var _initValues = {
+    'title': '',
+    'description': '',
+    'price': '',
+    'imageUrl': '',
+  };
+  var _isInit = true;
+
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      var arguments = ModalRoute.of(context)!.settings.arguments;
+      if (arguments != null) {
+        final productId = arguments as String;
+        final existingProduct =
+            Provider.of<Products>(context, listen: false).findById(productId);
+        _editedProduct.id = existingProduct.id;
+        _editedProduct.title = existingProduct.title;
+        _editedProduct.price = existingProduct.price;
+        _editedProduct.description = existingProduct.description;
+        _editedProduct.imageUrl = existingProduct.imageUrl;
+        _editedProduct.isFavorite = existingProduct.isFavorite;
+
+        _initValues = {
+          'title': existingProduct.title,
+          'description': existingProduct.description,
+          'price': existingProduct.price.toString(),
+          'imageUrl': '',
+        };
+        _imageUrlController.text = _editedProduct.imageUrl;
+      }
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
 
   @override
   void dispose() {
@@ -54,13 +92,21 @@ class _EditProductScreenState extends State<EditProductScreen> {
     }
     _form.currentState!.save();
 
-    Provider.of<Products>(context, listen: false).addProduct(Product(
+    var product = Product(
       id: '',
       title: _editedProduct.title,
       description: _editedProduct.description,
       price: _editedProduct.price,
       imageUrl: _editedProduct.imageUrl,
-    ));
+      isFavorite: _editedProduct.isFavorite,
+    );
+    if (_editedProduct.id == null) {
+      Provider.of<Products>(context, listen: false).addProduct(product);
+    } else {
+      Provider.of<Products>(context, listen: false)
+          .updateProduct(_editedProduct.id!, product);
+    }
+
     Navigator.of(context).pop();
   }
 
@@ -83,6 +129,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
             child: ListView(
               children: [
                 TextFormField(
+                  initialValue: _initValues['title'],
                   decoration: const InputDecoration(
                     labelText: 'Title',
                   ),
@@ -107,6 +154,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   },
                 ),
                 TextFormField(
+                  initialValue: _initValues['price'],
                   decoration: const InputDecoration(labelText: 'Price'),
                   textInputAction: TextInputAction.next,
                   keyboardType:
@@ -135,6 +183,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   },
                 ),
                 TextFormField(
+                  initialValue: _initValues['description'],
                   decoration: const InputDecoration(labelText: 'Description'),
                   maxLines: 3,
                   keyboardType: TextInputType.multiline,
