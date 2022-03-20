@@ -6,8 +6,10 @@ class UserProductItem extends StatelessWidget {
   final String id;
   final String title;
   final String imageUrl;
+  final Function deleteHandler;
 
-  const UserProductItem(this.id, this.title, this.imageUrl, {Key? key})
+  const UserProductItem(this.id, this.title, this.imageUrl, this.deleteHandler,
+      {Key? key})
       : super(key: key);
 
   @override
@@ -32,7 +34,7 @@ class UserProductItem extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () {},
+            onPressed: () => deleteHandler(id),
             color: Theme.of(context).errorColor,
           ),
         ]),
