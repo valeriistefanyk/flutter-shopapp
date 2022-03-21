@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'product.dart';
+
+import '../api/products.dart';
 
 class Products with ChangeNotifier {
   final List<Product> _items = [
@@ -49,9 +53,8 @@ class Products with ChangeNotifier {
     return _items.firstWhere((product) => product.id == id);
   }
 
-  void addProduct(Product product) {
-    var id = product.title.replaceAll(' ', '') +
-        DateTime.now().millisecondsSinceEpoch.toString();
+  void addProduct(Product product) async {
+    var id = await ProductsApi.addProduct(product);
     final newProduct = Product(
         id: id,
         title: product.title,
