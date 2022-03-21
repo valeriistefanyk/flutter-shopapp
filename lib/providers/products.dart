@@ -53,7 +53,7 @@ class Products with ChangeNotifier {
     return _items.firstWhere((product) => product.id == id);
   }
 
-  void addProduct(Product product) async {
+  Future<void> addProduct(Product product) async {
     var id = await ProductsApi.addProduct(product);
     final newProduct = Product(
         id: id,
