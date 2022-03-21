@@ -1,26 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:shop_app/providers/product.dart';
-
-import '../providers/products.dart';
-
-class _EditedProduct {
-  String? id;
-  String title;
-  double price;
-  String imageUrl;
-  String description;
-  bool isFavorite = false;
-
-  _EditedProduct({
-    this.id,
-    required this.title,
-    required this.price,
-    required this.imageUrl,
-    required this.description,
-  });
-}
+import '../mixins/edit_product.dart';
 
 class EditProductScreen extends StatefulWidget {
   static const routeName = '/edit-product';
@@ -31,97 +10,18 @@ class EditProductScreen extends StatefulWidget {
   State<EditProductScreen> createState() => _EditProductScreenState();
 }
 
-class _EditProductScreenState extends State<EditProductScreen> {
-  final _priceFocusNode = FocusNode();
-  final _descriptionFocusNode = FocusNode();
-  final _imageUrlController = TextEditingController();
-  final _form = GlobalKey<FormState>();
-  final _editedProduct = _EditedProduct(
-    title: '',
-    price: 0,
-    imageUrl: '',
-    description: '',
-  );
-  var _initValues = {
-    'title': '',
-    'description': '',
-    'price': '',
-    'imageUrl': '',
-  };
-  var _isInit = true;
-  var _isLoading = false;
-
+class _EditProductScreenState extends State<EditProductScreen>
+    with EditProductMixin {
   @override
   void didChangeDependencies() {
-    if (_isInit) {
-      var arguments = ModalRoute.of(context)!.settings.arguments;
-      if (arguments != null) {
-        final productId = arguments as String;
-        final existingProduct =
-            Provider.of<Products>(context, listen: false).findById(productId);
-        _editedProduct.id = existingProduct.id;
-        _editedProduct.title = existingProduct.title;
-        _editedProduct.price = existingProduct.price;
-        _editedProduct.description = existingProduct.description;
-        _editedProduct.imageUrl = existingProduct.imageUrl;
-        _editedProduct.isFavorite = existingProduct.isFavorite;
-
-        _initValues = {
-          'title': existingProduct.title,
-          'description': existingProduct.description,
-          'price': existingProduct.price.toString(),
-          'imageUrl': '',
-        };
-        _imageUrlController.text = _editedProduct.imageUrl;
-      }
-    }
-    _isInit = false;
+    onDidChangeDependencies();
     super.didChangeDependencies();
   }
 
   @override
   void dispose() {
-    _priceFocusNode.dispose();
-    _descriptionFocusNode.dispose();
-    _imageUrlController.dispose();
+    onDispose();
     super.dispose();
-  }
-
-  void _saveForm() {
-    if (!_form.currentState!.validate()) {
-      return;
-    }
-    _form.currentState!.save();
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    var product = Product(
-      id: '',
-      title: _editedProduct.title,
-      description: _editedProduct.description,
-      price: _editedProduct.price,
-      imageUrl: _editedProduct.imageUrl,
-      isFavorite: _editedProduct.isFavorite,
-    );
-    if (_editedProduct.id == null) {
-      Provider.of<Products>(context, listen: false)
-          .addProduct(product)
-          .then((_) {
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.of(context).pop();
-      });
-    } else {
-      Provider.of<Products>(context, listen: false)
-          .updateProduct(_editedProduct.id!, product);
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.of(context).pop();
-    }
   }
 
   @override
@@ -131,32 +31,32 @@ class _EditProductScreenState extends State<EditProductScreen> {
           title: const Text('Edit Product'),
           actions: [
             IconButton(
-              onPressed: _saveForm,
+              onPressed: saveForm,
               icon: const Icon(Icons.save),
             )
           ],
         ),
-        body: _isLoading
+        body: isLoading
             ? const Center(
                 child: CircularProgressIndicator(),
               )
             : Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Form(
-                  key: _form,
+                  key: form,
                   child: ListView(
                     children: [
                       TextFormField(
-                        initialValue: _initValues['title'],
+                        initialValue: initValues['title'],
                         decoration: const InputDecoration(
                           labelText: 'Title',
                         ),
                         textInputAction: TextInputAction.next,
                         onFieldSubmitted: (_) {
-                          FocusScope.of(context).requestFocus(_priceFocusNode);
+                          FocusScope.of(context).requestFocus(priceFocusNode);
                         },
                         onSaved: (value) {
-                          _editedProduct.title = value ?? '';
+                          editedProduct.title = value ?? '';
                         },
                         validator: (value) {
                           if (value == null) {
@@ -172,7 +72,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                         },
                       ),
                       TextFormField(
-                        initialValue: _initValues['price'],
+                        initialValue: initValues['price'],
                         decoration: const InputDecoration(labelText: 'Price'),
                         textInputAction: TextInputAction.next,
                         keyboardType: const TextInputType.numberWithOptions(
@@ -180,10 +80,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
                         inputFormatters: [
                           allowNumbersFormatter(),
                         ],
-                        focusNode: _priceFocusNode,
+                        focusNode: priceFocusNode,
                         onFieldSubmitted: (_) {
                           FocusScope.of(context)
-                              .requestFocus(_descriptionFocusNode);
+                              .requestFocus(descriptionFocusNode);
                         },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -198,11 +98,11 @@ class _EditProductScreenState extends State<EditProductScreen> {
                           return null;
                         },
                         onSaved: (value) {
-                          _editedProduct.price = double.parse(value!);
+                          editedProduct.price = double.parse(value!);
                         },
                       ),
                       TextFormField(
-                        initialValue: _initValues['description'],
+                        initialValue: initValues['description'],
                         decoration:
                             const InputDecoration(labelText: 'Description'),
                         maxLines: 3,
@@ -217,7 +117,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                           return null;
                         },
                         onSaved: (value) {
-                          _editedProduct.description = value ?? '';
+                          editedProduct.description = value ?? '';
                         },
                       ),
                       Row(
@@ -230,12 +130,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
                             decoration: BoxDecoration(
                               border: Border.all(width: 1, color: Colors.grey),
                             ),
-                            child: _imageUrlController.text.isEmpty ||
-                                    !checkIsValidUrl(_imageUrlController.text)
+                            child: imageUrlController.text.isEmpty ||
+                                    !checkIsValidUrl(imageUrlController.text)
                                 ? const Text('Enter a URL')
                                 : FittedBox(
                                     child: Image.network(
-                                      _imageUrlController.text,
+                                      imageUrlController.text,
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -246,7 +146,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                 const InputDecoration(labelText: 'Image URL'),
                             keyboardType: TextInputType.url,
                             textInputAction: TextInputAction.done,
-                            controller: _imageUrlController,
+                            controller: imageUrlController,
                             onEditingComplete: () {
                               setState(() {});
                             },
@@ -260,7 +160,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                               return null;
                             },
                             onSaved: (value) {
-                              _editedProduct.imageUrl = value ?? '';
+                              editedProduct.imageUrl = value ?? '';
                             },
                           )),
                         ],
@@ -273,7 +173,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                 SizedBox(
                                   width: 100,
                                   child: ElevatedButton(
-                                    onPressed: _saveForm,
+                                    onPressed: saveForm,
                                     child: const Text('Save'),
                                   ),
                                 ),
@@ -282,13 +182,5 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   ),
                 ),
               ));
-  }
-
-  TextInputFormatter allowNumbersFormatter() {
-    return FilteringTextInputFormatter.allow(RegExp(r'^(\d+)?\.?\d{0,2}'));
-  }
-
-  bool checkIsValidUrl(String url) {
-    return Uri.parse(url).isAbsolute;
   }
 }
