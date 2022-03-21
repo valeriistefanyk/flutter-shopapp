@@ -15,8 +15,12 @@ class ProductsApi {
           'price': product.price,
           'isFavorite': product.isFavorite
         }));
-    final response = jsonDecode(rawResponse.body);
-    final id = response['name'];
-    return id ?? 'invalid';
+    if ((rawResponse.statusCode ~/ 100) == 2) {
+      final response = jsonDecode(rawResponse.body);
+      final id = response['name'];
+      return id ?? 'invalid';
+    } else {
+      throw Exception(rawResponse.reasonPhrase);
+    }
   }
 }

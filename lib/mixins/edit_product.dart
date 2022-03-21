@@ -74,7 +74,7 @@ mixin EditProductMixin<T extends StatefulWidget> on State<T> {
     imageUrlController.dispose();
   }
 
-  void saveForm() {
+  void saveForm(BuildContext ctx) {
     if (!form.currentState!.validate()) {
       return;
     }
@@ -93,21 +93,35 @@ mixin EditProductMixin<T extends StatefulWidget> on State<T> {
       isFavorite: editedProduct.isFavorite,
     );
     if (editedProduct.id == null) {
-      Provider.of<Products>(context, listen: false)
+      Provider.of<Products>(ctx, listen: false)
           .addProduct(product)
-          .then((_) {
+          .catchError((error) {
+        return showDialog<void>(
+            context: ctx,
+            builder: (ctx) => AlertDialog(
+                  title: const Text('An error occurred!'),
+                  content: const Text('Something went wrong!'),
+                  actions: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                        },
+                        child: const Text('Ok')),
+                  ],
+                ));
+      }).then((_) {
         setState(() {
           isLoading = false;
         });
-        Navigator.of(context).pop();
+        Navigator.of(ctx).pop();
       });
     } else {
-      Provider.of<Products>(context, listen: false)
+      Provider.of<Products>(ctx, listen: false)
           .updateProduct(editedProduct.id!, product);
       setState(() {
         isLoading = false;
       });
-      Navigator.of(context).pop();
+      Navigator.of(ctx).pop();
     }
   }
 

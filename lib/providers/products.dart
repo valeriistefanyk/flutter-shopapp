@@ -54,7 +54,8 @@ class Products with ChangeNotifier {
   }
 
   Future<void> addProduct(Product product) async {
-    var id = await ProductsApi.addProduct(product);
+    var id = await ProductsApi.addProduct(product)
+        .catchError((error) => throw Exception(error.toString()));
     final newProduct = Product(
         id: id,
         title: product.title,

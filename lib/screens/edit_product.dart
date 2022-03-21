@@ -31,7 +31,7 @@ class _EditProductScreenState extends State<EditProductScreen>
           title: const Text('Edit Product'),
           actions: [
             IconButton(
-              onPressed: saveForm,
+              onPressed: () => saveForm(context),
               icon: const Icon(Icons.save),
             )
           ],
@@ -173,7 +173,7 @@ class _EditProductScreenState extends State<EditProductScreen>
                                 SizedBox(
                                   width: 100,
                                   child: ElevatedButton(
-                                    onPressed: saveForm,
+                                    onPressed: () => saveForm(context),
                                     child: const Text('Save'),
                                   ),
                                 ),
