@@ -11,6 +11,7 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final product = Provider.of<Product>(context, listen: false);
     final cart = Provider.of<Cart>(context, listen: false);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
@@ -35,9 +36,8 @@ class ProductItem extends StatelessWidget {
                           ? Icons.favorite
                           : Icons.favorite_border,
                     ),
-                    onPressed: () {
-                      product.toggleFavoriteStatus();
-                    },
+                    onPressed: () =>
+                        toggleFavorite(scaffoldMessenger, context, product),
                     color: Theme.of(context).colorScheme.secondary,
                   )),
           title: Text(
@@ -68,5 +68,17 @@ class ProductItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void toggleFavorite(ScaffoldMessengerState scaffoldMessenger,
+      BuildContext context, Product product) {
+    product.toggleFavoriteStatus().catchError((e) {
+      scaffoldMessenger.hideCurrentSnackBar();
+      scaffoldMessenger.showSnackBar(SnackBar(
+          content: Text(
+        e.toString(),
+        textAlign: TextAlign.center,
+      )));
+    });
   }
 }

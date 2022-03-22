@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../api/products.dart';
 
 class Product with ChangeNotifier {
   final String id;
@@ -17,8 +18,16 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  void toggleFavoriteStatus() {
+  Future<void> toggleFavoriteStatus() async {
+    final oldStatus = isFavorite;
     isFavorite = !isFavorite;
+
+    try {
+      await ProductsApi.toggleFavorite(id, isFavorite);
+    } catch (e) {
+      isFavorite = oldStatus;
+      rethrow;
+    }
     notifyListeners();
   }
 }
