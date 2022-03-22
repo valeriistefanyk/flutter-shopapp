@@ -7,6 +7,7 @@ import '../providers/products.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/badge.dart';
 import '../widgets/loader.dart';
+import '../components/refresh_products.dart';
 
 import 'cart.dart';
 
@@ -54,6 +55,18 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
       appBar: AppBar(
         title: const Text('MyShop'),
         actions: [
+          IconButton(
+              onPressed: () => refreshProducts(context),
+              icon: const Icon(Icons.update)),
+          Consumer<Cart>(
+            builder: (_, cart, ch) => Badge(
+                child: ch ?? Container(), value: cart.itemCount.toString()),
+            child: IconButton(
+                icon: const Icon(Icons.shopping_cart),
+                onPressed: () {
+                  Navigator.of(context).pushNamed(CartScreen.routeName);
+                }),
+          ),
           PopupMenuButton(
             icon: const Icon(Icons.more_vert),
             itemBuilder: (_) => [
@@ -79,19 +92,13 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
               });
             },
           ),
-          Consumer<Cart>(
-            builder: (_, cart, ch) => Badge(
-                child: ch ?? Container(), value: cart.itemCount.toString()),
-            child: IconButton(
-                icon: const Icon(Icons.shopping_cart),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(CartScreen.routeName);
-                }),
-          )
         ],
       ),
       drawer: const AppDrawer(),
-      body: _isLoading ? buildLoader() : ProductsGrid(_showOnlyFavarites),
+      body: _isLoading
+          ? buildLoader()
+          : buildRefreshIndicator(
+              context: context, child: ProductsGrid(_showOnlyFavarites)),
     );
   }
 }
