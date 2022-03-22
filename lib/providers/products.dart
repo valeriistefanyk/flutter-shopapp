@@ -54,16 +54,19 @@ class Products with ChangeNotifier {
   }
 
   Future<void> addProduct(Product product) async {
-    var id = await ProductsApi.addProduct(product)
-        .catchError((error) => throw Exception(error.toString()));
-    final newProduct = Product(
-        id: id,
-        title: product.title,
-        description: product.description,
-        price: product.price,
-        imageUrl: product.imageUrl);
-    _items.add(newProduct);
-    notifyListeners();
+    try {
+      final id = await ProductsApi.addProduct(product);
+      final newProduct = Product(
+          id: id,
+          title: product.title,
+          description: product.description,
+          price: product.price,
+          imageUrl: product.imageUrl);
+      _items.add(newProduct);
+      notifyListeners();
+    } catch (error) {
+      rethrow;
+    }
   }
 
   void updateProduct(String id, Product newProduct) {

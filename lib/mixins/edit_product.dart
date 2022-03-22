@@ -74,7 +74,7 @@ mixin EditProductMixin<T extends StatefulWidget> on State<T> {
     imageUrlController.dispose();
   }
 
-  void saveForm(BuildContext ctx) {
+  Future<void> saveForm() async {
     if (!form.currentState!.validate()) {
       return;
     }
@@ -93,11 +93,11 @@ mixin EditProductMixin<T extends StatefulWidget> on State<T> {
       isFavorite: editedProduct.isFavorite,
     );
     if (editedProduct.id == null) {
-      Provider.of<Products>(ctx, listen: false)
-          .addProduct(product)
-          .catchError((error) {
-        return showDialog<void>(
-            context: ctx,
+      try {
+        await Provider.of<Products>(context, listen: false).addProduct(product);
+      } catch (error) {
+        await showDialog(
+            context: context,
             builder: (ctx) => AlertDialog(
                   title: const Text('An error occurred!'),
                   content: const Text('Something went wrong!'),
@@ -109,19 +109,19 @@ mixin EditProductMixin<T extends StatefulWidget> on State<T> {
                         child: const Text('Ok')),
                   ],
                 ));
-      }).then((_) {
+      } finally {
         setState(() {
           isLoading = false;
         });
-        Navigator.of(ctx).pop();
-      });
+        Navigator.of(context).pop();
+      }
     } else {
-      Provider.of<Products>(ctx, listen: false)
+      Provider.of<Products>(context, listen: false)
           .updateProduct(editedProduct.id!, product);
       setState(() {
         isLoading = false;
       });
-      Navigator.of(ctx).pop();
+      Navigator.of(context).pop();
     }
   }
 
