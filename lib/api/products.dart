@@ -1,7 +1,7 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import '../providers/product.dart';
+import '../models/http_exceptions.dart';
 
 const domain = 'shop-app-dd495-default-rtdb.europe-west1.firebasedatabase.app';
 const productCollection = '/products.json';
@@ -25,6 +25,26 @@ class ProductsApi {
       return loadedProducts;
     } catch (e) {
       rethrow;
+    }
+  }
+
+  static Future<void> updateProduct(String id, Product newProduct) async {
+    await http.patch(
+      Uri.https(domain, '/products/$id.json'),
+      body: json.encode({
+        'title': newProduct.title,
+        'description': newProduct.description,
+        'imageUrl': newProduct.imageUrl,
+        'price': newProduct.price,
+      }),
+    );
+  }
+
+  static Future<void> deleteProduct(String id) async {
+    final rawResponse =
+        await http.delete(Uri.https(domain, '/products/$id.json'));
+    if (rawResponse.statusCode >= 400) {
+      throw HttpException('Could not delete product');
     }
   }
 

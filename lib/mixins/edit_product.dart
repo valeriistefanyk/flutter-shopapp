@@ -109,20 +109,15 @@ mixin EditProductMixin<T extends StatefulWidget> on State<T> {
                         child: const Text('Ok')),
                   ],
                 ));
-      } finally {
-        setState(() {
-          isLoading = false;
-        });
-        Navigator.of(context).pop();
       }
     } else {
-      Provider.of<Products>(context, listen: false)
+      await Provider.of<Products>(context, listen: false)
           .updateProduct(editedProduct.id!, product);
-      setState(() {
-        isLoading = false;
-      });
-      Navigator.of(context).pop();
     }
+    setState(() {
+      isLoading = false;
+    });
+    Navigator.of(context).pop();
   }
 
   TextInputFormatter allowNumbersFormatter() {

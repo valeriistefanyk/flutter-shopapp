@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'product.dart';
 
 import '../api/products.dart';
@@ -45,16 +43,28 @@ class Products with ChangeNotifier {
     }
   }
 
-  void updateProduct(String id, Product newProduct) {
+  Future<void> updateProduct(String id, Product newProduct) async {
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     if (prodIndex >= 0) {
+      await ProductsApi.updateProduct(id, newProduct);
       _items[prodIndex] = newProduct;
       notifyListeners();
     }
   }
 
-  void deleteProduct(String id) {
-    _items.removeWhere((prod) => prod.id == id);
+  Future<void> deleteProduct(String id) async {
+    final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
+    final existingProduct = _items[existingProductIndex];
+    _items.removeAt(existingProductIndex);
     notifyListeners();
+
+    try {
+      await ProductsApi.deleteProduct(id);
+      existingProduct.dispose();
+    } catch (e) {
+      _items.insert(existingProductIndex, existingProduct);
+      notifyListeners();
+      rethrow;
+    }
   }
 }

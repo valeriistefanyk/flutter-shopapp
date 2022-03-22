@@ -21,13 +21,13 @@ class UserProductsScreen extends StatelessWidget {
           title: const Text('Your Products'),
           actions: [
             IconButton(
+                onPressed: () => refreshProducts(context),
+                icon: const Icon(Icons.update)),
+            IconButton(
                 onPressed: () {
                   Navigator.of(context).pushNamed(EditProductScreen.routeName);
                 },
                 icon: const Icon(Icons.add)),
-            IconButton(
-                onPressed: () => refreshProducts(context),
-                icon: const Icon(Icons.update))
           ],
         ),
         drawer: const AppDrawer(),
@@ -40,14 +40,27 @@ class UserProductsScreen extends StatelessWidget {
                 itemBuilder: (ctx, i) => Column(
                       children: [
                         UserProductItem(
-                            productsData.items[i].id,
-                            productsData.items[i].title,
-                            productsData.items[i].imageUrl,
-                            (id) => productsData.deleteProduct(id)),
+                          productsData.items[i].id,
+                          productsData.items[i].title,
+                          productsData.items[i].imageUrl,
+                          (id) => deleteProduct(context, productsData, id),
+                        ),
                         const Divider(),
                       ],
                     )),
           ),
         ));
+  }
+
+  void deleteProduct(
+      BuildContext context, Products productsData, String id) async {
+    await productsData.deleteProduct(id).catchError((error) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        error.toString(),
+        textAlign: TextAlign.center,
+      )));
+    });
   }
 }
