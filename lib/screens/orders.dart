@@ -15,25 +15,15 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
-  var _isLoading = false;
-  var _isInit = false;
-  late Orders ordersData;
+  late Future _ordersFuture;
+  Future _obtainOrdersFuture() {
+    return Provider.of<Orders>(context, listen: false).fetchAndSetOrders();
+  }
 
   @override
-  void didChangeDependencies() {
-    if (!_isInit) {
-      ordersData = Provider.of<Orders>(context);
-      setState(() {
-        _isLoading = true;
-      });
-      ordersData.fetchAndSetOrders().catchError((e) => print(e)).then((value) {
-        setState(() {
-          _isLoading = false;
-        });
-      });
-    }
-    _isInit = true;
-    super.didChangeDependencies();
+  void initState() {
+    _ordersFuture = _obtainOrdersFuture();
+    super.initState();
   }
 
   @override
@@ -41,11 +31,25 @@ class _OrdersScreenState extends State<OrdersScreen> {
     return Scaffold(
         appBar: AppBar(title: const Text('Your Orders')),
         drawer: const AppDrawer(),
-        body: _isLoading
-            ? buildLoader()
-            : ListView.builder(
-                itemCount: ordersData.orders.length,
-                itemBuilder: (ctx, i) => OrderItem(ordersData.orders[i]),
-              ));
+        body: FutureBuilder(
+            future: _ordersFuture,
+            builder: (ctx, dataSnapshot) {
+              if (dataSnapshot.connectionState == ConnectionState.waiting) {
+                return buildLoader();
+              } else {
+                if (dataSnapshot.error != null) {
+                  return Center(
+                    child: Text('Error: ${dataSnapshot.error.toString()}'),
+                  );
+                } else {
+                  return Consumer<Orders>(
+                      builder: (ctx, ordersData, child) => ListView.builder(
+                            itemCount: ordersData.orders.length,
+                            itemBuilder: (ctx, i) =>
+                                OrderItem(ordersData.orders[i]),
+                          ));
+                }
+              }
+            }));
   }
 }
