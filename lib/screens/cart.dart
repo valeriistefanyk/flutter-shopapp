@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/cart.dart' show Cart;
 import '../providers/orders.dart' show Orders;
 import '../widgets/cart_item.dart';
+import '../components/loader.dart';
 
 class CartScreen extends StatelessWidget {
   static const routeName = '/cart';
@@ -42,18 +43,7 @@ class CartScreen extends StatelessWidget {
                     ),
                     backgroundColor: Theme.of(context).primaryColor,
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Provider.of<Orders>(context, listen: false).addOrder(
-                        cart.items.values.toList(),
-                        cart.totalAmount,
-                      );
-                      cart.clear();
-                    },
-                    child: const Text('ORDER NOW'),
-                    style: TextButton.styleFrom(
-                        primary: Theme.of(context).primaryColor),
-                  )
+                  OrderButton(cart: cart)
                 ],
               ),
             ),
@@ -78,5 +68,54 @@ class CartScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class OrderButton extends StatefulWidget {
+  const OrderButton({
+    Key? key,
+    required this.cart,
+  }) : super(key: key);
+
+  final Cart cart;
+
+  @override
+  State<OrderButton> createState() => _OrderButtonState();
+}
+
+class _OrderButtonState extends State<OrderButton> {
+  var _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: (widget.cart.totalAmount <= 0 || _isLoading)
+          ? null
+          : () {
+              setState(() {
+                _isLoading = true;
+              });
+              Provider.of<Orders>(context, listen: false)
+                  .addOrder(
+                    widget.cart.items.values.toList(),
+                    widget.cart.totalAmount,
+                  )
+                  .then((value) => widget.cart.clear())
+                  .catchError((error) {
+                buildSnackBar(error.toString());
+              }).then((value) {
+                setState(() {
+                  _isLoading = false;
+                });
+              });
+            },
+      child: const Text('ORDER NOW'),
+      style: TextButton.styleFrom(primary: Theme.of(context).primaryColor),
+    );
+  }
+
+  void buildSnackBar(String text) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 }
