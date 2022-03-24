@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth.dart';
+import '../models/http_exceptions.dart';
 
 enum AuthMode { signup, login }
 
@@ -21,6 +22,22 @@ class _AuthCartState extends State<AuthCard> {
   bool _isLoading = false;
   final _passwordController = TextEditingController();
 
+  void _showErrorDialog(String message) {
+    showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+              title: const Text('An Error Occurred!'),
+              content: Text(message),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                    child: const Text('Ok'))
+              ],
+            ));
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       // Invalid
@@ -31,24 +48,18 @@ class _AuthCartState extends State<AuthCard> {
     setState(() {
       _isLoading = true;
     });
-    if (_authMode == AuthMode.login) {
-      // Log user in
-      print(_authData);
-      try {
+    try {
+      if (_authMode == AuthMode.login) {
         await Provider.of<Auth>(context, listen: false)
             .login(_authData['email'] ?? '', _authData['password'] ?? '');
-      } catch (e) {
-        print('e: $e');
-      }
-    } else {
-      // Sign user up
-      print(_authData);
-      try {
+      } else {
         await Provider.of<Auth>(context, listen: false)
             .signup(_authData['email'] ?? '', _authData['password'] ?? '');
-      } catch (e) {
-        print('e: $e');
       }
+    } on HttpException catch (e) {
+      _showErrorDialog(e.toString());
+    } catch (e) {
+      _showErrorDialog('Could not authenticate you.Please try again later');
     }
     setState(() {
       _isLoading = false;
@@ -118,7 +129,6 @@ class _AuthCartState extends State<AuthCard> {
                     decoration:
                         const InputDecoration(labelText: 'Confirm Password'),
                     obscureText: true,
-                    controller: _passwordController,
                     validator: (value) {
                       if (value == null || value != _passwordController.text) {
                         return 'Passwords do not match!';
